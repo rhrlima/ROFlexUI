@@ -19,7 +19,13 @@ public class DraggableHybridSlot : IconAmount, IDragSource, IDragTarget
 
     public DragPayload CreatePayload()
     {
-        return new DragPayload(this, Sprite, GetPayloadText(Data), Data);
+        return Data switch
+        {
+            ItemData item => new DragPayload<ItemData>(this, Sprite, GetPayloadText(item), item),
+            SkillData skill => new DragPayload<SkillData>(this, Sprite, GetPayloadText(skill), skill),
+            _ => throw new System.NotSupportedException($"Unsupported data type: {Data.GetType()}"),
+        };
+
     }
 
     public bool CanDrag()
@@ -30,19 +36,28 @@ public class DraggableHybridSlot : IconAmount, IDragSource, IDragTarget
     public bool CanDrop(DragPayload payload)
     {
         return payload != null
-            && IsSupported(payload.data)
+            && IsSupported(payload)
             && (canReplaceOnDrop || Data == null);
     }
 
     public void OnDropComplete(DragPayload payload)
     {
-        if (payload.data is not ScriptableObject data || !IsSupported(data))
+        if (!IsSupported(payload))
         {
             return;
         }
 
-        Data = data;
-        Assign(payload.sprite, GetSecondaryValue(data));
+        switch (payload)
+        {
+            case DragPayload<ItemData> itemPayload:
+                Data = itemPayload.data;
+                break;
+            case DragPayload<SkillData> skillPayload:
+                Data = skillPayload.data;
+                break;
+        }
+
+        Assign(payload.sprite, GetSecondaryValue(Data));
         SetActive(true);
     }
 
@@ -52,9 +67,14 @@ public class DraggableHybridSlot : IconAmount, IDragSource, IDragTarget
         Clear();
     }
 
-    private static bool IsSupported(object data)
+    private static bool IsSupported(ScriptableObject data)
     {
         return data is ItemData or SkillData;
+    }
+
+    private static bool IsSupported(DragPayload payload)
+    {
+        return payload is DragPayload<ItemData> or DragPayload<SkillData>;
     }
 
     private static string GetSecondaryValue(object data)

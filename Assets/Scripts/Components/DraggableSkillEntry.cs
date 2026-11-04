@@ -29,7 +29,7 @@ public class DraggableSkillEntry : SkillEntry, IDragSource
     public DragPayload CreatePayload()
     {
         var text = $"{Data.name}: {Data.currLevel}/{Data.maxLevel}";
-        return new DragPayload(this, Sprite, text, Data);
+        return new DragPayload<SkillData>(this, Sprite, text, Data);
     }
 
     public bool CanDrag()

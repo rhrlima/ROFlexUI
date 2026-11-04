@@ -6,6 +6,7 @@ namespace RO_Flex_UI.Components.DragAndDrop
     public class DragTrigger : MonoBehaviour, IBeginDragHandler, IEndDragHandler, IDragHandler
     {
         protected IDragSource source;
+        private DraggableManager sessionManager;
 
         protected virtual void Start()
         {
@@ -19,21 +20,27 @@ namespace RO_Flex_UI.Components.DragAndDrop
         {
             if (source == null) return;
 
-            DraggableManager.Instance.BeginDragSession(source, eventData);
+            var manager = DraggableManager.Instance;
+            if (manager != null && manager.BeginDragSession(source, eventData))
+                sessionManager = manager;
         }
 
         public void OnEndDrag(PointerEventData eventData)
         {
             if (source == null) return;
 
-            DraggableManager.Instance.OnEndDragSession(source, eventData);
+            if (sessionManager != null)
+                sessionManager.OnEndDragSession(source, eventData);
+            sessionManager = null;
         }
 
         public void OnDrag(PointerEventData eventData)
         {
             if (source == null) return;
 
-            DraggableManager.Instance.OnDrag(source, eventData);
+            if (sessionManager != null)
+                sessionManager.OnDrag(source, eventData);
         }
+
     }
 }
