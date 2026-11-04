@@ -1,4 +1,5 @@
-﻿using RO_Flex_UI.Utils;
+﻿using System.Collections.Generic;
+using RO_Flex_UI.Utils;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -13,6 +14,9 @@ namespace RO_Flex_UI.Components.DragAndDrop
         private IDragSource activeSource;
         private DragPayload payload;
         private bool dragging;
+        private bool dropAttempted;
+        private PointerEventData dragEvent;
+        private readonly List<RaycastResult> raycastResults = new();
         public bool Dragging => dragging;
 
         public void Start()
@@ -28,18 +32,6 @@ namespace RO_Flex_UI.Components.DragAndDrop
 
             foreach (var graphic in proxy.GetComponentsInChildren<Graphic>(true))
                 graphic.raycastTarget = false;
-        }
-
-        public bool TryGetPayload(out DragPayload payload)
-        {
-            if (dragging && this.payload != null)
-            {
-                payload = this.payload;
-                return true;
-            }
-
-            payload = default;
-            return false;
         }
 
         public bool BeginDragSession(IDragSource source, PointerEventData eventData)
@@ -59,6 +51,8 @@ namespace RO_Flex_UI.Components.DragAndDrop
             }
 
             activeSource = source;
+            dragEvent = eventData;
+            dropAttempted = false;
             dragging = true;
 
             proxy.Assign(payload.sprite, payload.text);
@@ -78,16 +72,35 @@ namespace RO_Flex_UI.Components.DragAndDrop
 
         public void OnEndDragSession(IDragSource source, PointerEventData eventData)
         {
+            CancelDragSession(source);
+        }
+
+        public void CancelDragSession(IDragSource source)
+        {
             if (!dragging) return;
             if (!ReferenceEquals(activeSource, source)) return;
 
+            ClearDragSession();
+        }
+
+        private void ClearDragSession()
+        {
             dragging = false;
-
-            proxy.Clear();
-            proxy.SetActive(false);
-
             payload = null;
             activeSource = null;
+            dragEvent = null;
+
+            if (proxy != null)
+            {
+                proxy.Clear();
+                proxy.SetActive(false);
+            }
+        }
+
+        private void OnDisable()
+        {
+            if (dragging)
+                ClearDragSession();
         }
 
         public void OnDrag(IDragSource source, PointerEventData eventData)
@@ -95,24 +108,70 @@ namespace RO_Flex_UI.Components.DragAndDrop
             if (!dragging) return;
             if (!ReferenceEquals(activeSource, source)) return;
 
-            MoveProxy(eventData);
+            MoveProxy(eventData.position);
         }
 
         public bool TryDrop(IDragSource targetSource, IDragTarget target)
         {
             if (target == null) return false;
-            if (!TryGetPayload(out var currentPayload)) return false;
-            if (targetSource != null && ReferenceEquals(currentPayload.source, targetSource)) return false;
-            if (!target.CanDrop(currentPayload)) return false;
+            if (dropAttempted) return false;
+            if (payload == null) return false;
+            var currentPayload = payload;
+            dropAttempted = true;
+            try
+            {
+                if (targetSource != null && ReferenceEquals(currentPayload.source, targetSource)) return false;
+                if (!target.CanDrop(currentPayload)) return false;
 
-            target.OnDropComplete(currentPayload);
-            currentPayload.source.OnDragComplete();
-            return true;
+                target.OnDropComplete(currentPayload);
+                currentPayload.source.OnDragComplete();
+                return true;
+            }
+            catch
+            {
+                ClearDragSession();
+                throw;
+            }
         }
 
-        private void MoveProxy(PointerEventData eventData)
+        private void LateUpdate()
         {
-            proxyTransform.anchoredPosition += eventData.delta / canvas.scaleFactor;
+            if (!dragging) return;
+
+            var position = (Vector2)Input.mousePosition;
+            MoveProxy(position);
+            if (Input.GetMouseButton(0)) return;
+
+            // Run after EventSystem.Update so normal drop dispatch gets first chance.
+            try
+            {
+                var eventSystem = EventSystem.current;
+                if (!dropAttempted && eventSystem != null)
+                {
+                    dragEvent.position = position;
+                    raycastResults.Clear();
+                    eventSystem.RaycastAll(dragEvent, raycastResults);
+                    foreach (var hit in raycastResults)
+                    {
+                        if (hit.gameObject == null) continue;
+                        dragEvent.pointerCurrentRaycast = hit;
+                        ExecuteEvents.ExecuteHierarchy(hit.gameObject, dragEvent, ExecuteEvents.dropHandler);
+                        break;
+                    }
+                }
+            }
+            finally
+            {
+                raycastResults.Clear();
+                ClearDragSession();
+            }
+        }
+
+        private void MoveProxy(Vector2 position)
+        {
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                canvas.transform as RectTransform, position, canvas.worldCamera, out var localPoint);
+            proxyTransform.anchoredPosition = localPoint;
         }
     }
 }

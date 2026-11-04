@@ -22,7 +22,7 @@ public class DraggableItem : IconAmount, IDragSource, IDragTarget
     public DragPayload CreatePayload()
     {
         var text = $"{Data.name}: {Data.amount} un.";
-        return new DragPayload(this, Sprite, text, Data);
+        return new DragPayload<ItemData>(this, Sprite, text, Data);
     }
 
     public bool CanDrag()
@@ -33,16 +33,16 @@ public class DraggableItem : IconAmount, IDragSource, IDragTarget
     public bool CanDrop(DragPayload payload)
     {
         return payload != null
-            && payload.TryGetData<ItemData>(out _)
+            && payload is DragPayload<ItemData>
             && (canReplaceOnDrop || Data == null);
     }
 
     public void OnDropComplete(DragPayload payload)
     {
-        if (!payload.TryGetData<ItemData>(out var data)) return;
+        if (payload is not DragPayload<ItemData> itemPayload) return;
 
-        Data = data;
-        Assign(payload.sprite, data.amount.ToString());
+        Data = itemPayload.data;
+        Assign(payload.sprite, Data.amount.ToString());
         SetActive(true);
 
         if (tooltipTrigger != null && Data != null)
@@ -54,6 +54,8 @@ public class DraggableItem : IconAmount, IDragSource, IDragTarget
 
     public void OnDragComplete()
     {
+        Data = null;
+        Clear();
     }
 
     public override void Clear()

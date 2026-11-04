@@ -10,7 +10,7 @@ public class DraggableSkill : IconAmount, IDragSource, IDragTarget
     public DragPayload CreatePayload()
     {
         var text = $"{Data.name}: {Data.currLevel}/{Data.maxLevel}";
-        return new DragPayload(this, Sprite, text, Data);
+        return new DragPayload<SkillData>(this, Sprite, text, Data);
     }
 
     public bool CanDrag()
@@ -21,15 +21,15 @@ public class DraggableSkill : IconAmount, IDragSource, IDragTarget
     public bool CanDrop(DragPayload payload)
     {
         return payload != null
-            && payload.TryGetData<SkillData>(out _)
+            && payload is DragPayload<SkillData>
             && (canReplaceOnDrop || Data == null);
     }
 
     public void OnDropComplete(DragPayload payload)
     {
-        if (!payload.TryGetData<SkillData>(out var data)) return;
+        if (payload is not DragPayload<SkillData> skillPayload) return;
 
-        Data = data;
+        Data = skillPayload.data;
         Assign(payload.sprite, string.Empty);
         SetActive(true);
     }

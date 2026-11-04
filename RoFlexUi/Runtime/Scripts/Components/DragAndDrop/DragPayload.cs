@@ -5,38 +5,24 @@ namespace RO_Flex_UI.Components.DragAndDrop
     public class DragPayload
     {
         public readonly IDragSource source;
-        public readonly object data;
         public readonly Sprite sprite;
         public readonly string text;
 
-        public DragPayload(IDragSource source, Sprite sprite, string text, object data)
+        public DragPayload(IDragSource source, Sprite sprite, string text)
         {
             this.source = source;
             this.sprite = sprite;
             this.text = text ?? string.Empty;
+        }
+    }
+
+    public class DragPayload<T> : DragPayload
+    {
+        public readonly T data;
+
+        public DragPayload(IDragSource source, Sprite sprite, string text, T data) : base(source, sprite, text)
+        {
             this.data = data;
-        }
-
-        public T GetData<T>()
-        {
-            if (data is T tData)
-            {
-                return tData;
-            }
-
-            return default;
-        }
-
-        public bool TryGetData<T>(out T data)
-        {
-            if (this.data is T t)
-            {
-                data = t;
-                return true;
-            }
-
-            data = default;
-            return false;
         }
     }
 }
