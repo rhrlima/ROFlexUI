@@ -78,11 +78,13 @@ namespace RO_Flex_UI.Components
                 increaseButton.onClick.RemoveListener(OnIncreaseClick);
         }
 
+#if UNITY_EDITOR
         protected override void OnValidate()
         {
             base.OnValidate();
             ApplyButtonSprites();
         }
+#endif
 
         private void OnDecreaseClick()
         {

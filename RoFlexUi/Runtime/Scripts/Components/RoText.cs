@@ -53,11 +53,13 @@ namespace RO_Flex_UI.Components
             base.OnDestroy();
         }
 
+#if UNITY_EDITOR
         protected override void OnValidate()
         {
             base.OnValidate();
             ApplyOutlineColorOverride();
         }
+#endif
 
         public override Material GetModifiedMaterial(Material baseMaterial)
         {

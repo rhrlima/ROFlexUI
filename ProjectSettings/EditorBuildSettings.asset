@@ -8,9 +8,13 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/MainScene.unity
     guid: 9fc0d4010bbf28b4594072e72b8655ab
-  - enabled: 1
+  - enabled: 0
     path: Packages/com.ricric.roflexui/Samples/Demos/Classic UI/Classic UI.unity
     guid: f9d01311eeb9fff43b632da76b74f9a7
+  - enabled: 1
+    path: Assets/Scenes/DragAndDrop.unity
+    guid: 90dd66c27f59b4978ab195a66b42ff27
   m_configObjects:
     com.unity.addressableassets: {fileID: 11400000, guid: 591d0ace6d96944a28227e5a3d783f89, type: 2}
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}
+  m_UseUCBPForAssetBundles: 0
