@@ -19,13 +19,12 @@ namespace RO_Flex_UI.Components
 
         private void OnDisable()
         {
-            tooltipComponent?.HideTooltip();
+            HideTooltip();
         }
 
         public void SetText(string text)
         {
             tooltipText = text;
-            tooltipComponent?.SetText(text);
         }
 
         public void OnPointerEnter(PointerEventData eventData)
@@ -34,22 +33,28 @@ namespace RO_Flex_UI.Components
 
             if (!CanShowTooltip(eventData))
             {
-                tooltipComponent?.HideTooltip();
+                HideTooltip();
                 return;
             }
 
             tooltipComponent.SetText(tooltipText);
-            tooltipComponent.ShowTooltip();
+            tooltipComponent.ShowTooltip(this);
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
-            tooltipComponent?.HideTooltip();
+            HideTooltip();
         }
 
         public void OnBeginDrag(PointerEventData eventData)
         {
-            tooltipComponent?.HideTooltip();
+            HideTooltip();
+        }
+
+        private void HideTooltip()
+        {
+            if (tooltipComponent != null)
+                tooltipComponent.HideTooltip(this);
         }
 
         private bool CanShowTooltip(PointerEventData eventData)

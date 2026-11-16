@@ -1,5 +1,6 @@
 ﻿using RO_Flex_UI.Components;
 using RO_Flex_UI.Utils;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace RO_Flex_UI.Panels
@@ -10,6 +11,7 @@ namespace RO_Flex_UI.Panels
         [SerializeField] private IconText template;
         [SerializeField] private RectTransform leftPanel;
         [SerializeField] private RectTransform rightPanel;
+        public List<IconText> slots = new();
 
         private void Awake()
         {
@@ -47,6 +49,7 @@ namespace RO_Flex_UI.Panels
                 var instance = Instantiate(template, (i < slotsPerPanel) ? leftPanel : rightPanel);
                 instance.gameObject.SetActive(true);
                 instance.FlipElements(i >= slotsPerPanel);
+                slots.Add(instance);
             }
         }
     }

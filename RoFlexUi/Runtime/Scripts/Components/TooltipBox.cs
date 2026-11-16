@@ -10,6 +10,7 @@ namespace RO_Flex_UI.Components
         [SerializeField] private RectTransform background;
         [SerializeField, Min(0f)] private Vector2 maxSize = new(300f, 200f);
         private CanvasGroup canvasGroup;
+        private TooltipTrigger activeTrigger;
 
         void Start()
         {
@@ -57,14 +58,34 @@ namespace RO_Flex_UI.Components
             RefreshSize();
         }
 
+        internal void ShowTooltip(TooltipTrigger trigger)
+        {
+            ShowTooltip();
+            activeTrigger = trigger;
+        }
+
+        internal void HideTooltip(TooltipTrigger trigger)
+        {
+            // Multiple triggers share this proxy; stale events must not hide its current owner.
+            if (activeTrigger == trigger)
+                HideTooltip();
+        }
+
+        private void OnDisable()
+        {
+            activeTrigger = null;
+        }
+
         public void ShowTooltip()
         {
+            activeTrigger = null;
             RefreshSize();
             gameObject.SetActive(true);
         }
 
         public void HideTooltip()
         {
+            activeTrigger = null;
             gameObject.SetActive(false);
         }
 

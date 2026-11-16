@@ -36,6 +36,8 @@ namespace RO_Flex_UI.Panels
                 FitWindowIntoPlayArea();
         }
 
+        protected virtual void OnDisable() { }
+
         protected void LateUpdate()
         {
             if (keepWindowInScreen)

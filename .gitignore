@@ -83,6 +83,9 @@ crashlytics-build.properties
 TODO.md
 NOTES.md
 
+# Mac file
+.DS_Store
+
 # AI stuff
 AGENTS.md
 .codex/

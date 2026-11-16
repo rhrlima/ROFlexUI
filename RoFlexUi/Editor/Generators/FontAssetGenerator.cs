@@ -5,6 +5,8 @@ using UnityEngine.TextCore.LowLevel;
 using System.IO;
 using System.Linq;
 
+// TODO review and simplify Dynamic to Static atlas
+
 namespace RO_Flex_UI.Editor
 {
     public class FontAssetGenerator

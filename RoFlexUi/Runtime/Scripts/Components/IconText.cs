@@ -59,7 +59,7 @@ namespace RO_Flex_UI.Components
             ToggleText(value);
         }
 
-        public void Assign(Sprite sprite, string text, string amount = "")
+        public virtual void Assign(Sprite sprite, string text, string amount = "")
         {
             base.Assign(sprite, amount);
 

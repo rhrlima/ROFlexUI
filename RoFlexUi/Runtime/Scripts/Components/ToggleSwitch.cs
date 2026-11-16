@@ -54,6 +54,7 @@ namespace RO_Flex_UI.Components
             base.OnDisable();
         }
 
+#if UNITY_EDITOR
         protected override void OnValidate()
         {
             base.OnValidate();
@@ -62,6 +63,7 @@ namespace RO_Flex_UI.Components
             value = Mathf.Clamp01(value);
             SyncStateFromValue();
         }
+#endif
 
         public void SetIsOn(bool isOn, bool notify = true, bool animated = true)
         {
