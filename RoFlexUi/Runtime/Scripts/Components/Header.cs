@@ -10,7 +10,7 @@ namespace RO_Flex_UI.Components
         [SerializeField] private RoButton funButton;
         [SerializeField] private RoButton minButton;
         [SerializeField] private RoButton closeButton;
-        [SerializeField] private TMP_Text title;
+        [SerializeField] private RoText title;
 
         [SerializeField] private Button.ButtonClickedEvent onFunButtonClick;
         [SerializeField] private Button.ButtonClickedEvent onMinButtonClick;
