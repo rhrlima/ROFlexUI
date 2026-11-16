@@ -3,13 +3,20 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.TextCore.LowLevel;
 using System.IO;
+using System.Linq;
 
 namespace RO_Flex_UI.Editor
 {
     public class FontAssetGenerator
     {
-        // private const string fontsPath = "Assets/Samples/ROFlexUI";
         private const string fontsPath = "Assets/Fonts";
+        private const string Characters =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZÇ" +
+            "abcdefghijklmnopqrstuvwxyzç" +
+            " 0123456789<>[]{}()\\/" +
+            ".,:;~`'\"!?@#$%^&*-_=+|" +
+            "ÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÄËÏÖÜÃÕÑ" +
+            "áéíóúàèìòùâêîôûäëïöüãõñ";
 
         [MenuItem("Tools/ROFlexUI/Regenerate TMP Fonts")]
         public static void GenerateAll()
@@ -48,15 +55,32 @@ namespace RO_Flex_UI.Editor
 
             if (fontAsset == null) return;
 
-            fontAsset.hideFlags = HideFlags.None;
-            fontAsset.atlasTexture.hideFlags = HideFlags.None;
+            if (!fontAsset.TryAddCharacters(Characters, out string missingCharacters))
+            {
+                var missing = string.Join(", ", missingCharacters.Select(c => $"'{c}' (U+{(int)c:X4})"));
+                Debug.LogError($"Failed to bake font at {fontPath}. Missing characters: {missing}");
+                foreach (var texture in fontAsset.atlasTextures)
+                    if (texture != null) Object.DestroyImmediate(texture);
+                if (fontAsset.material != null) Object.DestroyImmediate(fontAsset.material);
+                Object.DestroyImmediate(fontAsset);
+                return;
+            }
 
-            fontAsset.atlasTexture.name = sourceFont.name + " Atlas";
-            fontAsset.atlasTexture.filterMode = FilterMode.Point;
-            fontAsset.atlasTexture.wrapMode = TextureWrapMode.Clamp;
+            fontAsset.atlasPopulationMode = AtlasPopulationMode.Static;
+            fontAsset.hideFlags = HideFlags.None;
 
             AssetDatabase.CreateAsset(fontAsset, assetPath);
-            AssetDatabase.AddObjectToAsset(fontAsset.atlasTexture, fontAsset);
+            for (var i = 0; i < fontAsset.atlasTextures.Length; i++)
+            {
+                var texture = fontAsset.atlasTextures[i];
+                if (texture == null) continue;
+                texture.hideFlags = HideFlags.None;
+                texture.name = sourceFont.name + " Atlas" + (i == 0 ? "" : $" {i}");
+                texture.filterMode = FilterMode.Point;
+                texture.wrapMode = TextureWrapMode.Clamp;
+                AssetDatabase.AddObjectToAsset(texture, fontAsset);
+                EditorUtility.SetDirty(texture);
+            }
 
             CreateMaterialPreset(fontAsset, assetPath, "Default", "TextMeshPro/Bitmap", true);
             CreateMaterialPreset(fontAsset, assetPath, "Outline", "ROFlexUI/Fonts/Pixel Outline");
@@ -144,6 +168,8 @@ namespace RO_Flex_UI.Editor
             var existingMaterial = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
             if (existingMaterial != null)
             {
+                existingMaterial.SetTexture(ShaderUtilities.ID_MainTex, fontAsset.atlasTexture);
+                EditorUtility.SetDirty(existingMaterial);
                 if (is_default)
                     fontAsset.material = existingMaterial;
 

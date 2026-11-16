@@ -14,6 +14,7 @@ Shader "ROFlexUI/Fonts/Pixel Outline"
         _StencilWriteMask ("Stencil Write Mask", Float) = 255
         _StencilReadMask ("Stencil Read Mask", Float) = 255
         _ColorMask ("Color Mask", Float) = 15
+        _CullMode ("Cull Mode", Float) = 0
 
         [Toggle(UNITY_UI_ALPHACLIP)]
         _UseUIAlphaClip ("Use Alpha Clip", Float) = 0
@@ -38,7 +39,7 @@ Shader "ROFlexUI/Fonts/Pixel Outline"
         }
 
         Lighting Off
-        Cull Off
+        Cull [_CullMode]
         ZWrite Off
         ZTest [unity_GUIZTestMode]
         Blend SrcAlpha OneMinusSrcAlpha

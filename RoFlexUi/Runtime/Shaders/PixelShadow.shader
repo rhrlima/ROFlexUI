@@ -4,8 +4,8 @@ Shader "ROFlexUI/Fonts/Pixel Shadow"
     {
         [PerRendererData] _MainTex("Font Atlas", 2D) = "black" {}
 
-        _ShadowColor("Shadow Color", Color) = (1, 1, 1, 1)
-        _ShadowOffset("Shadow Offset", Vector) = (1, -1, 0, 0)
+        _OutlineColor("Shadow Color", Color) = (1, 1, 1, 1)
+        _OutlineOffset("Shadow Offset", Vector) = (1, -1, 0, 0)
 
         // Standard Unity UI stencil properties.
         _StencilComp ("Stencil Comparison", Float) = 8
@@ -14,6 +14,7 @@ Shader "ROFlexUI/Fonts/Pixel Shadow"
         _StencilWriteMask ("Stencil Write Mask", Float) = 255
         _StencilReadMask ("Stencil Read Mask", Float) = 255
         _ColorMask ("Color Mask", Float) = 15
+        _CullMode ("Cull Mode", Float) = 0
 
         [Toggle(UNITY_UI_ALPHACLIP)]
         _UseUIAlphaClip ("Use Alpha Clip", Float) = 0
@@ -38,7 +39,7 @@ Shader "ROFlexUI/Fonts/Pixel Shadow"
         }
 
         Lighting Off
-        Cull Off
+        Cull [_CullMode]
         ZWrite Off
         ZTest [unity_GUIZTestMode]
 
@@ -83,8 +84,8 @@ Shader "ROFlexUI/Fonts/Pixel Shadow"
             // w = texture height
             float4 _MainTex_TexelSize;
 
-            fixed4 _ShadowColor;
-            float2 _ShadowOffset;
+            fixed4 _OutlineColor;
+            float2 _OutlineOffset;
             float4 _ClipRect;
 
             VertexToFragment vert(AppData input)
@@ -115,7 +116,7 @@ Shader "ROFlexUI/Fonts/Pixel Shadow"
             fixed4 frag(VertexToFragment input) : SV_Target
             {
                 fixed faceMask = tex2D(_MainTex, input.uv).a;
-                float2 shadowUvOffset = _ShadowOffset.xy * _MainTex_TexelSize.xy;
+                float2 shadowUvOffset = _OutlineOffset.xy * _MainTex_TexelSize.xy;
                 fixed shadowMask = tex2D(_MainTex, input.uv - shadowUvOffset).a;
 
                 fixed4 face = fixed4(
@@ -124,8 +125,8 @@ Shader "ROFlexUI/Fonts/Pixel Shadow"
                 );
 
                 fixed4 shadow = fixed4(
-                    _ShadowColor.rgb,
-                    _ShadowColor.a * shadowMask
+                    _OutlineColor.rgb,
+                    _OutlineColor.a * shadowMask
                 );
                 fixed4 outputColor = CompositeShadowBehindFace(face, shadow);
 
