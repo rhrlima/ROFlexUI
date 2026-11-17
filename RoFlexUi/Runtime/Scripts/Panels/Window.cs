@@ -15,6 +15,7 @@ namespace RO_Flex_UI.Panels
 
         private Draggable draggableComponent;
         private Resizable resizeComponent;
+        public bool IsVisible => gameObject.activeSelf;
 
         RectTransform IWindow.transform => transform as RectTransform;
 
